@@ -1,2 +1,2 @@
 # sejutacita
-API for CRUD user
+API for CRUD users
