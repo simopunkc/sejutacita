@@ -19,6 +19,17 @@ module.exports = {
       });
     });
   },
+  getOneUser: (id) => {
+    return new Promise((resolve, reject) => {
+      userProfile.findByPk(id,{
+        include: 'user_logins'
+      }).then(user => {
+        resolve(user);
+      }).catch(err => {
+        reject(err);
+      });
+    });
+  },
   userProfile,
   userLogin
 };

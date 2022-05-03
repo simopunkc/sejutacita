@@ -38,3 +38,25 @@ describe("POST user profile", () => {
     mockDB.restore();
   })
 })
+
+describe("GET user profile", () => {
+  it("Should get email from mock", async () => {
+    let mockDB = sinon.mock(profileDao.userProfile);
+    mockDB.expects("findByPk").once().resolves({
+      email: 'user2@web.com'
+    });
+    const userProfile = await profileDao.getOneUser(1);
+    expect(userProfile.email).toEqual('user2@web.com');
+    mockDB.verify();
+    mockDB.restore();
+  })
+  it("Should catch error", async () => {
+    let mockDB = sinon.mock(profileDao.userProfile);
+    mockDB.expects("findByPk").once().rejects(new Error("type"));
+    await profileDao.getOneUser("").catch((error) => {
+      expect(error.message).toEqual("type");
+    });
+    mockDB.verify();
+    mockDB.restore();
+  })
+})

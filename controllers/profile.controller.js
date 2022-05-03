@@ -19,7 +19,18 @@ const createUser = async (req, res) => {
 const readUser = async (req, res) => {
   const { id } = req.params
   try {
-    // TBD
+    const userProfile = await profileDao.getOneUser(id)
+    if (!userProfile) {
+      return res.status(404).json({
+        status: false,
+        message: 'user not found',
+      })
+    }
+    return res.status(200).json({
+      status: true,
+      message: 'get user profile',
+      userProfile,
+    })
   } catch (error) {
     return res.status(500).json({
       status: false,
