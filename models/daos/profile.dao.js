@@ -1,4 +1,7 @@
 const { userProfile, userLogin } = require('../index');
+const { encryptJWT } = require('../../controllers/modules/jwt');
+const { lifetime } = require('../../controllers/modules/config');
+const { passwordHash } = require('../../controllers/modules/bcrypt');
 
 module.exports = {
   insertOneUser: (obj) => {
@@ -7,10 +10,21 @@ module.exports = {
         firstName: obj.first_name,
         lastName: obj.last_name,
         email: obj.email,
-      }).then(user => {
+      }).then(async (user) => {
+        const accToken = encryptJWT({
+          username: obj.username,
+          expired: lifetime.cookie_acc_token
+        })
+        const refToken = encryptJWT({
+          username: obj.username,
+          expired: lifetime.cookie_ref_token
+        })
+        const hash = await passwordHash(obj.password)
         userLogin.create({
           username: obj.username,
-          password: obj.password,
+          password: hash,
+          accessToken: accToken,
+          refreshToken: refToken,
           id_user_profiles: user.id
         })
         resolve(user);

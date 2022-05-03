@@ -7,22 +7,22 @@ describe("POST user profile", () => {
     let mockDB2 = sinon.mock(profileDao.userLogin);
     const obj = {
       username: "user2",
-      password: "password",
+      password: "ywueyuwdhajs",
       first_name: "user",
       last_name: "pertama",
       email: "user2@web.com"
     }
     mockDB1.expects("create").once().resolves({
-      first_name: "user",
-      last_name: "pertama",
-      email: "user2@web.com"
+      first_name: obj.first_name,
+      last_name: obj.last_name,
+      email: obj.email
     });
     mockDB2.expects("create").once().resolves({
-      username: "user2",
-      password: "password"
+      username: obj.username,
+      password: obj.password
     });
     const userProfile = await profileDao.insertOneUser(obj);
-    expect(userProfile.email).toEqual("user2@web.com");
+    expect(userProfile.email).toEqual(obj.email);
     mockDB1.verify();
     mockDB2.verify();
     mockDB1.restore();
@@ -66,18 +66,18 @@ describe("UPDATE user profile", () => {
     let mockDB1 = sinon.mock(profileDao.userProfile);
     const obj = {
       username: "user2",
-      password: "password",
+      password: "ksadlafwanf",
       first_name: "user",
       last_name: "pertama",
       email: "updated@web.com"
     }
     mockDB1.expects("update").once().resolves({
-      first_name: "user",
-      last_name: "pertama",
-      email: "updated@web.com"
+      first_name: obj.first_name,
+      last_name: obj.last_name,
+      email: obj.email
     });
     const userProfile = await profileDao.updateOneUser(obj,1);
-    expect(userProfile.email).toEqual("updated@web.com");
+    expect(userProfile.email).toEqual(obj.email);
     mockDB1.verify();
     mockDB1.restore();
   })

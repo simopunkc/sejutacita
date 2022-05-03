@@ -1,10 +1,9 @@
 module.exports = (sequelize, Sequelize) => {
   const userLogin = sequelize.define('user_logins', {
-    id: {
+    id_user_profiles: {
       type: Sequelize.INTEGER,
       allowNull: false,
       primaryKey: true,
-      autoIncrement: true,
     },
     username: {
       type: Sequelize.STRING,
@@ -14,8 +13,12 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: false,
     },
-    id_user_profiles: {
-      type: Sequelize.INTEGER,
+    accessToken: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    refreshToken: {
+      type: Sequelize.STRING,
       allowNull: false,
     }
   }, { timestamps: false });
