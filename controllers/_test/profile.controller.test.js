@@ -60,3 +60,34 @@ describe("GET user profile", () => {
     mockDB.restore();
   })
 })
+
+describe("UPDATE user profile", () => {
+  it("Should update user profile", async () => {
+    let mockDB1 = sinon.mock(profileDao.userProfile);
+    const obj = {
+      username: "user2",
+      password: "password",
+      first_name: "user",
+      last_name: "pertama",
+      email: "updated@web.com"
+    }
+    mockDB1.expects("update").once().resolves({
+      first_name: "user",
+      last_name: "pertama",
+      email: "updated@web.com"
+    });
+    const userProfile = await profileDao.updateOneUser(obj,1);
+    expect(userProfile.email).toEqual("updated@web.com");
+    mockDB1.verify();
+    mockDB1.restore();
+  })
+  it("Should catch error", async () => {
+    let mockDB = sinon.mock(profileDao.userProfile);
+    mockDB.expects("update").once().rejects(new Error("type"));
+    await profileDao.updateOneUser({},"").catch((error) => {
+      expect(error.message).toEqual("type");
+    });
+    mockDB.verify();
+    mockDB.restore();
+  })
+})

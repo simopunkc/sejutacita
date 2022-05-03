@@ -42,7 +42,17 @@ const readUser = async (req, res) => {
 const updateUser = async (req, res) => {
   const { id } = req.params
   try {
-    // TBD
+    const num = await profileDao.updateOneUser(req.body, id)
+    if(num === 0){
+      return res.status(404).json({
+        status: false,
+        message: 'user update failed',
+      })
+    }
+    return res.status(404).json({
+      status: true,
+      message: 'user updated',
+    })
   } catch (error) {
     return res.status(500).json({
       status: false,

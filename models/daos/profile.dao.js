@@ -30,6 +30,21 @@ module.exports = {
       });
     });
   },
+  updateOneUser: (obj, id) => {
+    return new Promise((resolve, reject) => {
+      userProfile.update({
+        firstName: obj.first_name,
+        lastName: obj.last_name,
+        email: obj.email,
+      }, {
+        where: { id }
+      }).then(user => {
+        resolve(user);
+      }).catch(err => {
+        reject(err);
+      });
+    });
+  },
   userProfile,
   userLogin
 };
