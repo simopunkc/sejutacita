@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { Sequelize } = require('sequelize');
 
 const { env } = process;
@@ -24,9 +25,13 @@ const sequelize = new Sequelize(env.DB_NAME, env.DB_USER, env.DB_PASSWORD, {
 const userLogin = require('./login.model')(sequelize, Sequelize);
 const userProfile = require('./profile.model')(sequelize, Sequelize);
 
-userProfile.belongsTo(userLogin, {
-  as: 'user_login',
-  foreignKey: 'id_user_login'
+userProfile.hasOne(userLogin, {
+  as: 'user_logins',
+  foreignKey: 'id_user_profiles'
+})
+userLogin.belongsTo(userProfile, {
+  as: 'user_profiles',
+  foreignKey: 'id_user_profiles'
 })
 
 module.exports = {

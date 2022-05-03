@@ -1,8 +1,13 @@
-const { profile: Profile } = require('../models');
+const profileDao = require('../models/daos/profile.dao');
 
 const createUser = async (req, res) => {
   try {
-    // TBD
+    const userProfile = await profileDao.insertOneUser(req.body)
+    return res.status(200).json({
+      status: true,
+      message: 'user created',
+      userProfile,
+    })
   } catch (error) {
     return res.status(500).json({
       status: false,
@@ -11,7 +16,8 @@ const createUser = async (req, res) => {
   }
 }
 
-const readUser = async (_, res) => {
+const readUser = async (req, res) => {
+  const { id } = req.params
   try {
     // TBD
   } catch (error) {
