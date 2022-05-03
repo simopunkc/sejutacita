@@ -91,3 +91,23 @@ describe("UPDATE user profile", () => {
     mockDB.restore();
   })
 })
+
+describe("DELETE user profile", () => {
+  it("Should delete user profile", async () => {
+    let mockDB = sinon.mock(profileDao.userProfile);
+    mockDB.expects("destroy").once().resolves(1);
+    const userProfile = await profileDao.deleteOneUser(1);
+    expect(userProfile).toEqual(1);
+    mockDB.verify();
+    mockDB.restore();
+  })
+  it("Should catch error", async () => {
+    let mockDB = sinon.mock(profileDao.userProfile);
+    mockDB.expects("destroy").once().rejects(new Error("type"));
+    await profileDao.deleteOneUser("").catch((error) => {
+      expect(error.message).toEqual("type");
+    });
+    mockDB.verify();
+    mockDB.restore();
+  })
+})

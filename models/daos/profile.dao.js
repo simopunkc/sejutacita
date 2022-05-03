@@ -37,7 +37,18 @@ module.exports = {
         lastName: obj.last_name,
         email: obj.email,
       }, {
-        where: { id }
+        where: {id: id}
+      }).then(user => {
+        resolve(user);
+      }).catch(err => {
+        reject(err);
+      });
+    });
+  },
+  deleteOneUser: (id) => {
+    return new Promise((resolve, reject) => {
+      userProfile.destroy({
+        where: {id: id}
       }).then(user => {
         resolve(user);
       }).catch(err => {

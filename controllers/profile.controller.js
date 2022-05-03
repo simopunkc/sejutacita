@@ -64,7 +64,17 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   const { id } = req.params
   try {
-    // TBD
+    const num = await profileDao.deleteOneUser(id)
+    if(num === 0){
+      return res.status(404).json({
+        status: false,
+        message: 'user delete failed',
+      })
+    }
+    return res.status(200).json({
+      status: true,
+      message: 'user deleted',
+    })
   } catch (error) {
     return res.status(500).json({
       status: false,
