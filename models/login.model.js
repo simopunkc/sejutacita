@@ -8,19 +8,26 @@ module.exports = (sequelize, Sequelize) => {
     username: {
       type: Sequelize.STRING,
       allowNull: false,
+      unique: true,
     },
     password: {
       type: Sequelize.STRING,
       allowNull: false,
     },
-    accessToken: {
-      type: Sequelize.STRING,
+    role: {
+      type: Sequelize.INTEGER,
       allowNull: false,
+      defaultValue: 2,
     },
-    refreshToken: {
-      type: Sequelize.STRING,
-      allowNull: false,
-    }
-  }, { timestamps: false });
+  },
+  {
+    indexes: [
+      {
+        unique: true,
+        fields: ['username']
+      },
+    ],
+    timestamps: false
+  });
   return userLogin;
 };

@@ -1,0 +1,53 @@
+const app = require('./server');
+const request = require("supertest");
+const sinon = require("sinon");
+const agent = request.agent(app);
+const models = require('../../models/index')
+const registerDao = require('../../daos/register.dao');
+
+describe("Integration Test /register", () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  afterAll(() => {
+    models.sequelize.close()
+  });
+
+  describe("POST /register/user", () => {
+    describe("error 500", () => {
+      it("should catch error", async () => {
+        let mockDB = sinon.mock(registerDao);
+        mockDB.expects("insertOneUser").once().rejects(new Error("type"));
+        await agent.post("/register/user").expect(500);
+        mockDB.verify();
+        mockDB.restore();
+      });
+    });
+
+    describe("200 ok", () => {
+      it("should return 200 ok", async () => {
+        let mockDB1 = sinon.mock(registerDao.userProfile);
+        let mockDB2 = sinon.mock(registerDao.userLogin);
+        const obj = {
+          username: "user2",
+          password: "ywueyuwdhajs",
+          first_name: "user",
+          last_name: "pertama",
+          email: "user2@web.com"
+        }
+        mockDB1.expects("create").once().resolves({
+          first_name: obj.first_name,
+          last_name: obj.last_name,
+          email: obj.email
+        });
+        mockDB2.expects("create").once().resolves({});
+        await agent.post("/register/user").send(obj).expect(200);
+        mockDB1.verify();
+        mockDB2.verify();
+        mockDB1.restore();
+        mockDB2.restore();
+      });
+    });
+  });
+})

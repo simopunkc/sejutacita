@@ -5,6 +5,7 @@ const db = require('./models');
 const admin = require('./routes/admin.route');
 const user = require('./routes/user.route');
 const login = require('./routes/login.route');
+const register = require('./routes/register.route');
 
 const app = express();
 
@@ -23,8 +24,8 @@ app.use(cors());
 app.use('/admin', admin);
 app.use('/user', user);
 app.use('/login', login);
+app.use('/register', register);
 
 const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
-  console.log(`Running server at port ${PORT}`);
-});
+
+module.exports = app.listen(PORT);

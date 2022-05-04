@@ -1,36 +1,21 @@
-const profileDao = require('../models/daos/profile.dao');
-
-const createUser = async (req, res) => {
-  try {
-    const userProfile = await profileDao.insertOneUser(req.body)
-    return res.status(200).json({
-      status: true,
-      message: 'user created',
-      userProfile,
-    })
-  } catch (error) {
-    return res.status(500).json({
-      status: false,
-      error: error.message,
-    })
-  }
-}
+const profileDao = require('../daos/profile.dao');
 
 const readUser = async (req, res) => {
   const { id } = req.params
   try {
     const userProfile = await profileDao.getOneUser(id)
-    if (!userProfile) {
+    if(userProfile.email){
+      return res.status(200).json({
+        status: true,
+        message: 'get user profile',
+        userProfile,
+      })
+    }else{
       return res.status(404).json({
         status: false,
         message: 'user not found',
       })
     }
-    return res.status(200).json({
-      status: true,
-      message: 'get user profile',
-      userProfile,
-    })
   } catch (error) {
     return res.status(500).json({
       status: false,
@@ -48,11 +33,12 @@ const updateUser = async (req, res) => {
         status: false,
         message: 'user update failed',
       })
+    }else{
+      return res.status(200).json({
+        status: true,
+        message: 'user updated',
+      })
     }
-    return res.status(404).json({
-      status: true,
-      message: 'user updated',
-    })
   } catch (error) {
     return res.status(500).json({
       status: false,
@@ -70,11 +56,12 @@ const deleteUser = async (req, res) => {
         status: false,
         message: 'user delete failed',
       })
+    }else{
+      return res.status(200).json({
+        status: true,
+        message: 'user deleted',
+      })
     }
-    return res.status(200).json({
-      status: true,
-      message: 'user deleted',
-    })
   } catch (error) {
     return res.status(500).json({
       status: false,
@@ -84,7 +71,6 @@ const deleteUser = async (req, res) => {
 }
 
 module.exports = {
-  createUser,
   readUser,
   updateUser,
   deleteUser,
