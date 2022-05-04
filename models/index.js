@@ -31,7 +31,9 @@ userProfile.hasOne(userLogin, {
 })
 userLogin.belongsTo(userProfile, {
   as: 'user_profiles',
-  foreignKey: 'id_user_profiles'
+  foreignKey: 'id_user_profiles',
+  onDelete: 'cascade',
+  hooks: true
 })
 
 module.exports = {
