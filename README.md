@@ -53,6 +53,28 @@ docker build -t sejutacita -f application.Dockerfile .
 docker build -t sejutacita-db -f database.Dockerfile .
 ```
 
+## Rebuild Image
+
+Take note of the docker Image ID **sejutacita** and **sejutacita-db**.
+
+```bash
+docker image ls
+```
+
+Run the following command if you have previously run the application and want to update the docker image.
+
+```bash
+kubectl delete deploy sejutacita-deployment
+kubectl delete deploy sejutacita-db-deployment
+kubectl delete hpa sejutacita-deployment
+kubectl delete service sejutacita-service
+kubectl delete service sejutacita-db-service
+docker build --rm -t sejutacita -f application.Dockerfile .
+docker build --rm -t sejutacita-db -f database.Dockerfile .
+docker rmi <PREVIOUS_IMAGE_ID_sejutacita>
+docker rmi <PREVIOUS_IMAGE_ID_sejutacita-db>
+```
+
 ## Deploy
 
 Pods

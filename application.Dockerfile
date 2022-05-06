@@ -4,4 +4,5 @@ COPY . /app/backend
 RUN mv .env.example .env
 RUN yarn install
 EXPOSE 8000
-CMD yarn start
+RUN yarn global add pm2
+CMD [ "pm2-runtime", "npm", "--", "start" ]

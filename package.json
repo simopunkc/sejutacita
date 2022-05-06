@@ -6,7 +6,8 @@
   "author": "simopunkc <pembela.allah@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "node index.js",
+    "start": "pm2 start index.js -i 2",
+    "stop": "pm2 stop index.js",
     "start-dev": "nodemon index.js",
     "test": "jest --runInBand --detectOpenHandles --watchAll --coverage",
     "lint": "eslint ./"
@@ -18,14 +19,15 @@
     "express": "^4.18.1",
     "jsonwebtoken": "^8.5.1",
     "mariadb": "^3.0.0",
-    "sequelize": "^6.19.0",
-    "supertest": "^6.2.3"
+    "pm2": "^5.2.0",
+    "sequelize": "^6.19.0"
   },
   "devDependencies": {
     "@types/jest": "^27.4.1",
     "eslint": "^8.14.0",
     "jest": "^28.0.3",
     "nodemon": "^2.0.16",
-    "sinon": "^13.0.2"
+    "sinon": "^13.0.2",
+    "supertest": "^6.2.3"
   }
 }
