@@ -9,7 +9,7 @@ describe("POST user profile", () => {
       username: "user2",
       password: "ywueyuwdhajs",
       first_name: "user",
-      last_name: "pertama",
+      last_name: "kedua",
       email: "user2@web.com"
     }
     mockDB1.expects("create").once().resolves({

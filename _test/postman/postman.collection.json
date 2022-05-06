@@ -1,0 +1,348 @@
+{
+	"info": {
+		"_postman_id": "d472f0a7-6891-4544-8f72-0ce6fc91948d",
+		"name": "Sejuta Cita",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "create user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('status code should be 201', () => {",
+							"    pm.response.to.have.status(201);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"user2\",\n    \"password\": \"password\",\n    \"first_name\": \"user\",\n    \"last_name\": \"pertama\",\n    \"email\": \"user2@web.com\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/register/user",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"register",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login as user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('status code should be 200', () => {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('response body should be an object', () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.be.an('object');",
+							"});",
+							"",
+							"pm.test('response body should have correct property and value', () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.haveOwnProperty('userLogin');",
+							"});",
+							"",
+							"pm.test('response body data should contain accToken and refToken', () => {",
+							"    const responseJson = pm.response.json();",
+							"    const { userLogin } = responseJson;",
+							"",
+							"    pm.expect(userLogin).to.haveOwnProperty('accToken');",
+							"    pm.expect(userLogin.accToken).to.not.equals('');",
+							"    pm.expect(userLogin).to.haveOwnProperty('refToken');",
+							"    pm.expect(userLogin.refToken).to.not.equals('');",
+							"",
+							"    pm.environment.set('accToken', userLogin.accToken);",
+							"    pm.environment.set('refToken', userLogin.refToken);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"user2\",\n    \"password\": \"password\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/login/user",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"login",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user: read user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "access_token",
+						"value": "{{accToken}}",
+						"type": "text"
+					},
+					{
+						"key": "refresh_token",
+						"value": "{{refToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/user/1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"user",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login as admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('status code should be 200', () => {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('response body should be an object', () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.be.an('object');",
+							"});",
+							"",
+							"pm.test('response body should have correct property and value', () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.haveOwnProperty('userLogin');",
+							"});",
+							"",
+							"pm.test('response body data should contain accToken and refToken', () => {",
+							"    const responseJson = pm.response.json();",
+							"    const { userLogin } = responseJson;",
+							"",
+							"    pm.expect(userLogin).to.haveOwnProperty('accToken');",
+							"    pm.expect(userLogin.accToken).to.not.equals('');",
+							"    pm.expect(userLogin).to.haveOwnProperty('refToken');",
+							"    pm.expect(userLogin.refToken).to.not.equals('');",
+							"",
+							"    pm.environment.set('accToken', userLogin.accToken);",
+							"    pm.environment.set('refToken', userLogin.refToken);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"password\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/login/user",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"login",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "refresh access token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('status code should be 200', () => {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "refresh_token",
+						"value": "{{refToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/login/refresh",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"login",
+						"refresh"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin: read user",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "access_token",
+						"value": "{{accToken}}",
+						"type": "text"
+					},
+					{
+						"key": "refresh_token",
+						"value": "{{refToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/admin/1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin: update user",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "access_token",
+						"value": "{{accToken}}",
+						"type": "text"
+					},
+					{
+						"key": "refresh_token",
+						"value": "{{refToken}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"first_name\": \"user\",\n    \"last_name\": \"pertama\",\n    \"email\": \"updated@web.com\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin: delete user",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "access_token",
+						"value": "{{accToken}}",
+						"type": "text"
+					},
+					{
+						"key": "refresh_token",
+						"value": "{{refToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/admin/1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

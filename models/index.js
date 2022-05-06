@@ -8,6 +8,7 @@ const sequelize = new Sequelize(env.DB_NAME, env.DB_USER, env.DB_PASSWORD, {
   port: env.DB_PORT,
   dialect: env.DB_DIALECT,
   operatorsAliases: 0,
+  logging: false,
 
   pool: {
     max: 3,

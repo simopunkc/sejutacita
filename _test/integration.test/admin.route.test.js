@@ -1,4 +1,4 @@
-const app = require('./server');
+const app = require('../../server');
 const request = require("supertest");
 const sinon = require("sinon");
 const agent = request.agent(app);
@@ -247,7 +247,7 @@ describe("Integration Test /admin", () => {
         let mockDB = sinon.mock(profileDao);
         const obj = {
           first_name: "user",
-          last_name: "pertama",
+          last_name: "kedua",
           email: "updated@web.com"
         }
         mockDB.expects("updateOneUser").once().resolves(1);

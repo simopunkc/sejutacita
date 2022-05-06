@@ -1,4 +1,4 @@
-const app = require('./server');
+const app = require('../../server');
 const request = require("supertest");
 const sinon = require("sinon");
 const agent = request.agent(app);

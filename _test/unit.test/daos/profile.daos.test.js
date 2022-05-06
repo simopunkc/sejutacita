@@ -28,7 +28,7 @@ describe("UPDATE user profile", () => {
     let mockDB1 = sinon.mock(profileDao.userProfile);
     const obj = {
       first_name: "user",
-      last_name: "pertama",
+      last_name: "kedua",
       email: "updated@web.com"
     }
     mockDB1.expects("update").once().resolves({
