@@ -121,4 +121,24 @@ You can import the collections and environment files in the *_test/postman.test*
 
 ## Flow
 
-TBD
+### User registration
+
+```bash
+POST /register/user
+```
+This endpoint is used by the user for account registration. an **admin** has a role that is **1**. by default the role obtained on account registration is **2** which means the user is not an **admin**.
+
+### User login
+
+```bash
+POST /login/user
+```
+This endpoint is used by the user for account login. If the **username** and **password** entered in the request body are valid, the user will get an access token and a refresh token. Access tokens have a short life span. Whereas refresh tokens have a long lifetime. Both tokens are used as cookie values ​​which are stored in the user's browser.
+
+### Resource access
+
+To access resources on the API such as CRUD data, authorization and authentication are required. Each request must include a refresh token and an access token in the request header.
+
+If the user has no refresh token and access token it means the user has never been logged in so Front End should redirect the user to the login page.
+
+If the user has a refresh token but no access token, then it is likely that the user has logged in but the access token has expired. So Front End has to redirect user to **GET** endpoint **/login/refresh** to get new access token.
