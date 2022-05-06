@@ -25,7 +25,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"username\": \"user2\",\n    \"password\": \"password\",\n    \"first_name\": \"user\",\n    \"last_name\": \"pertama\",\n    \"email\": \"user2@web.com\"\n}",
+					"raw": "{\n    \"username\": \"user2\",\n    \"password\": \"password\",\n    \"first_name\": \"user\",\n    \"last_name\": \"kedua\",\n    \"email\": \"user2@web.com\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -295,7 +295,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"first_name\": \"user\",\n    \"last_name\": \"pertama\",\n    \"email\": \"updated@web.com\"\n}",
+					"raw": "{\n    \"first_name\": \"user\",\n    \"last_name\": \"kedua\",\n    \"email\": \"updated@web.com\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
