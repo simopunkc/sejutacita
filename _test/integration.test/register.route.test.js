@@ -25,8 +25,8 @@ describe("Integration Test /register", () => {
       });
     });
 
-    describe("200 ok", () => {
-      it("should return 200 ok", async () => {
+    describe("201 created", () => {
+      it("should return 201 created", async () => {
         let mockDB1 = sinon.mock(registerDao.userProfile);
         let mockDB2 = sinon.mock(registerDao.userLogin);
         const obj = {
@@ -42,7 +42,7 @@ describe("Integration Test /register", () => {
           email: obj.email
         });
         mockDB2.expects("create").once().resolves({});
-        await agent.post("/register/user").send(obj).expect(200);
+        await agent.post("/register/user").send(obj).expect(201);
         mockDB1.verify();
         mockDB2.verify();
         mockDB1.restore();

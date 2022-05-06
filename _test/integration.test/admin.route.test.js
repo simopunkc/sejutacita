@@ -7,10 +7,11 @@ const token = require('../../modules/token.modules');
 const role = require('../../modules/role.modules');
 const profileDao = require('../../daos/profile.dao');
 
-const validRefToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIyIiwiZXhwaXJlZCI6MzE1MzYwMDAwMDAsImlhdCI6MTY1MTU1MzY3MH0.b6QeKHFcm6nKGsjINf_T0Sxkgo2DCDcCuIGuFweXWyw";
-const validRefTokenButExpired = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIyIiwiZXhwaXJlZCI6MCwiaWF0IjoxNjUxNTUzNjcwfQ.Iw0JK6cZVLnEMeb7TsyhuaYB0yaqNu0oZa_28r55vd8";
+const validRefToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ1c2VyMiIsImV4cGlyZWQiOjMxNTM2MDAwMDAwLCJyb2xlIjoxLCJpYXQiOjE2NTE1NTM2NzB9.kXGDUopOZfW_Lvkqmg7j4Ww7G0MN6qYr9G7plXoyC6k";
+const validRefTokenButExpired = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ1c2VyMiIsImV4cGlyZWQiOjAsInJvbGUiOjEsImlhdCI6MTY1MTU1MzY3MH0.07KcHg_xYH1dRbFQHAyneawRopY49vpnauTRzvx9mQY";
 const validAccTokenUser = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ1c2VyMiIsImV4cGlyZWQiOjYwMDAwLCJyb2xlIjoyLCJpYXQiOjE2NTE1NTM2NzB9.BSuYSXq5X38LVy5vptYPdTaqNShZXcraZwzSov9djHw";
 const validAccTokenAdmin = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ1c2VyMiIsImV4cGlyZWQiOjYwMDAwLCJyb2xlIjoxLCJpYXQiOjE2NTE1NTM2NzB9.KuTr1HIAweTQGW9Q3AZXHAntTPd1lZLJ0-3UXblIQ3A";
+const validAccTokenAdminButDifferentId = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJ1c2VyMiIsImV4cGlyZWQiOjYwMDAwLCJyb2xlIjoxLCJpYXQiOjE2NTE1NTM2NzB9.ovtA2E8m6haC_3xwvEmWDET1vJsnFNjqN5VSVduo0C0";
 const validAccTokenButExpired = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ1c2VyMiIsImV4cGlyZWQiOjAsInJvbGUiOjIsImlhdCI6MTY1MTU1MzY3MH0.AfXr9nUo4GD-1ZANFjF86q1AF9YwXi5JdYaE_AI-Oec";
 
 describe("Integration Test /admin", () => {
@@ -34,13 +35,22 @@ describe("Integration Test /admin", () => {
         mock.verify();
         mock.restore();
       });
+      it("invalid token", async () => {
+        let mock = sinon.mock(token);
+        mock.expects("isExpiredRefToken").withArgs(sinon.match.any).once().returns(false);
+        mock.expects("isExpiredAccToken").withArgs(sinon.match.any).once().returns(false);
+        mock.expects("validateIdToken").once().throwsException(new Error("type"));
+        await agent.get("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(500);
+        mock.verify();
+        mock.restore();
+      });
       it("should catch error controller", async () => {
         let mock1 = sinon.mock(token);
         let mock2 = sinon.mock(role);
         mock1.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock1.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         mock2.expects("getRole").once().throwsException(new Error("type"));
-        await agent.get("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenUser).expect(500);
+        await agent.get("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(500);
         mock1.verify();
         mock2.verify();
         mock1.restore();
@@ -75,6 +85,17 @@ describe("Integration Test /admin", () => {
       });
     });
 
+    describe("error 403", () => {
+      it("invalid role", async () => {
+        let mock = sinon.mock(token);
+        mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
+        mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
+        await agent.get("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenUser).expect(403);
+        mock.verify();
+        mock.restore();
+      });
+    })
+
     describe("error 400", () => {
       it("refresh token not found", async () => {
         await agent.get("/admin/1").expect(400);
@@ -96,11 +117,11 @@ describe("Integration Test /admin", () => {
         mock.verify();
         mock.restore();
       });
-      it("invalid role", async () => {
+      it("invalid id token", async () => {
         let mock = sinon.mock(token);
-        mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
+        mock.expects("isExpiredRefToken").withArgs(sinon.match.any).once().returns(false);
         mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
-        await agent.get("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenUser).expect(400);
+        await agent.get("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdminButDifferentId).expect(400);
         mock.verify();
         mock.restore();
       });
@@ -136,13 +157,22 @@ describe("Integration Test /admin", () => {
         mock.verify();
         mock.restore();
       });
+      it("invalid token", async () => {
+        let mock = sinon.mock(token);
+        mock.expects("isExpiredRefToken").withArgs(sinon.match.any).once().returns(false);
+        mock.expects("isExpiredAccToken").withArgs(sinon.match.any).once().returns(false);
+        mock.expects("validateIdToken").once().throwsException(new Error("type"));
+        await agent.put("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(500);
+        mock.verify();
+        mock.restore();
+      });
       it("should catch error controller", async () => {
         let mock1 = sinon.mock(token);
         let mock2 = sinon.mock(role);
         mock1.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock1.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         mock2.expects("getRole").once().throwsException(new Error("type"));
-        await agent.put("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenUser).expect(500);
+        await agent.put("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(500);
         mock1.verify();
         mock2.verify();
         mock1.restore();
@@ -177,6 +207,17 @@ describe("Integration Test /admin", () => {
       });
     });
 
+    describe("error 403", () => {
+      it("invalid role", async () => {
+        let mock = sinon.mock(token);
+        mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
+        mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
+        await agent.put("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenUser).expect(403);
+        mock.verify();
+        mock.restore();
+      });
+    })
+
     describe("error 400", () => {
       it("refresh token not found", async () => {
         await agent.put("/admin/1").expect(400);
@@ -195,14 +236,6 @@ describe("Integration Test /admin", () => {
         let mock = sinon.mock(token);
         mock.expects("isExpiredRefToken").withArgs(sinon.match.any).once().returns(false);
         await agent.put("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenButExpired).expect(400);
-        mock.verify();
-        mock.restore();
-      });
-      it("invalid role", async () => {
-        let mock = sinon.mock(token);
-        mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
-        mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
-        await agent.put("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenUser).expect(400);
         mock.verify();
         mock.restore();
       });
@@ -241,13 +274,22 @@ describe("Integration Test /admin", () => {
         mock.verify();
         mock.restore();
       });
+      it("invalid token", async () => {
+        let mock = sinon.mock(token);
+        mock.expects("isExpiredRefToken").withArgs(sinon.match.any).once().returns(false);
+        mock.expects("isExpiredAccToken").withArgs(sinon.match.any).once().returns(false);
+        mock.expects("validateIdToken").once().throwsException(new Error("type"));
+        await agent.delete("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(500);
+        mock.verify();
+        mock.restore();
+      });
       it("should catch error controller", async () => {
         let mock1 = sinon.mock(token);
         let mock2 = sinon.mock(role);
         mock1.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock1.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         mock2.expects("getRole").once().throwsException(new Error("type"));
-        await agent.delete("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenUser).expect(500);
+        await agent.delete("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(500);
         mock1.verify();
         mock2.verify();
         mock1.restore();
@@ -282,6 +324,17 @@ describe("Integration Test /admin", () => {
       });
     });
 
+    describe("error 403", () => {
+      it("invalid role", async () => {
+        let mock = sinon.mock(token);
+        mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
+        mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
+        await agent.delete("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenUser).expect(403);
+        mock.verify();
+        mock.restore();
+      });
+    })
+
     describe("error 400", () => {
       it("refresh token not found", async () => {
         await agent.delete("/admin/1").expect(400);
@@ -300,14 +353,6 @@ describe("Integration Test /admin", () => {
         let mock = sinon.mock(token);
         mock.expects("isExpiredRefToken").withArgs(sinon.match.any).once().returns(false);
         await agent.delete("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenButExpired).expect(400);
-        mock.verify();
-        mock.restore();
-      });
-      it("invalid role", async () => {
-        let mock = sinon.mock(token);
-        mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
-        mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
-        await agent.delete("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenUser).expect(400);
         mock.verify();
         mock.restore();
       });

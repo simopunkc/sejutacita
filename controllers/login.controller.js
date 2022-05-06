@@ -57,11 +57,30 @@ const middlewareCheckAccToken = async (req, res, next) => {
   }
 }
 
+const middlewareValidateToken = async (req, res, next) => {
+  try {
+    const validToken = loginDao.token.validateIdToken(res.locals.refToken,res.locals.accToken)
+    if(validToken){
+      next()
+    }else{
+      return res.status(400).json({
+        status: false,
+        message: "refresh token and access token don't match",
+      })
+    }
+  } catch (error) {
+    return res.status(500).json({
+      status: false,
+      error: error.message,
+    })
+  }
+}
+
 const middlewareCheckRole = async (req, res, next) => {
   try {
     const role = loginDao.role.getRole(res.locals.accToken)
     if(role!=1){
-      return res.status(400).json({
+      return res.status(403).json({
         status: false,
         message: 'invalid authorization',
       })
@@ -80,7 +99,7 @@ const middlewareCheckIdUser = async (req, res, next) => {
   try {
     const idUser = loginDao.role.getIdUser(res.locals.accToken)
     if(idUser!=req.params.id){
-      return res.status(400).json({
+      return res.status(403).json({
         status: false,
         message: 'invalid user authorization',
       })
@@ -101,7 +120,7 @@ const authUser = async (req, res) => {
     if(userLogin.accToken){
       return res.status(200).json({
         status: true,
-        message: 'get token user',
+        message: 'generate token user',
         userLogin,
       })
     }else{
@@ -144,6 +163,7 @@ const updateAccToken = async (req, res) => {
 module.exports = {
   middlewareCheckRefToken,
   middlewareCheckAccToken,
+  middlewareValidateToken,
   middlewareCheckRole,
   middlewareCheckIdUser,
   authUser,

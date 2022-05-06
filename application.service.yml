@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sejutacita-service
+spec:
+  selector:
+    app: sejutacita
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 8000
+    nodePort: 31110

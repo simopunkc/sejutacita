@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sejutacita-db-service
+spec:
+  selector:
+    app: sejutacita-db
+  type: NodePort
+  ports:
+  - protocol: TCP
+    port: 5001
+    targetPort: 3306
+    nodePort: 31111

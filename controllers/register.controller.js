@@ -3,7 +3,7 @@ const registerDao = require('../daos/register.dao');
 const createUser = async (req, res) => {
   try {
     const userProfile = await registerDao.insertOneUser(req.body)
-    return res.status(200).json({
+    return res.status(201).json({
       status: true,
       message: 'user created',
       userProfile,

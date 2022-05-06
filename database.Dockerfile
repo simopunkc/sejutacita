@@ -1,0 +1,7 @@
+FROM mariadb:latest
+ENV MYSQL_ROOT_PASSWORD password
+ENV MYSQL_DATABASE sejutacita
+ENV MYSQL_USER username
+ENV MYSQL_PASSWORD password
+EXPOSE 3306
+CMD ["mysqld"]

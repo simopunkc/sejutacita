@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sejutacita-deployment
+  labels:
+    app: sejutacita
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sejutacita
+  template:
+    metadata:
+      labels:
+        app: sejutacita
+    spec:
+      containers:
+      - name: nodeserver
+        image: sejutacita
+        ports:
+        - containerPort: 8000
+        imagePullPolicy: Never

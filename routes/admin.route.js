@@ -3,6 +3,7 @@ const router = require('express').Router();
 const {
   middlewareCheckRefToken,
   middlewareCheckAccToken,
+  middlewareValidateToken,
   middlewareCheckRole,
 } = require('../controllers/login.controller');
 
@@ -12,8 +13,8 @@ const {
   deleteUser,
 } = require('../controllers/profile.controller');
 
-router.get('/:id', middlewareCheckRefToken, middlewareCheckAccToken, middlewareCheckRole, readUser);
-router.put('/:id', middlewareCheckRefToken, middlewareCheckAccToken, middlewareCheckRole, updateUser);
-router.delete('/:id', middlewareCheckRefToken, middlewareCheckAccToken, middlewareCheckRole, deleteUser);
+router.get('/:id', middlewareCheckRefToken, middlewareCheckAccToken, middlewareValidateToken, middlewareCheckRole, readUser);
+router.put('/:id', middlewareCheckRefToken, middlewareCheckAccToken, middlewareValidateToken, middlewareCheckRole, updateUser);
+router.delete('/:id', middlewareCheckRefToken, middlewareCheckAccToken, middlewareValidateToken, middlewareCheckRole, deleteUser);
 
 module.exports = router;
