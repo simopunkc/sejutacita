@@ -6,8 +6,7 @@
   "author": "simopunkc <pembela.allah@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "pm2 start index.js -i 2",
-    "stop": "pm2 stop index.js",
+    "start": "node index.js",
     "start-dev": "nodemon index.js",
     "test": "jest --runInBand --detectOpenHandles --watchAll --coverage",
     "lint": "eslint ./"
