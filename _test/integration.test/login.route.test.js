@@ -2,20 +2,26 @@ const app = require('../../server');
 const request = require("supertest");
 const sinon = require("sinon");
 const agent = request.agent(app);
-const models = require('../../models/index')
-const loginDao = require('../../daos/login.dao');
 const token = require('../../modules/token.modules');
+const cache = require("../../models/redis.connection");
+const loginDao = require('../../daos/login.dao');
+const database = require('../../models/mongodb.connection');
+const mongodbConnection = {
+  userLogin: {
+    findOne(){},
+  },
+}
 
 const validRefToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ1c2VyMiIsImV4cGlyZWQiOjMxNTM2MDAwMDAwLCJyb2xlIjoxLCJpYXQiOjE2NTE1NTM2NzB9.kXGDUopOZfW_Lvkqmg7j4Ww7G0MN6qYr9G7plXoyC6k";
 const validRefTokenButExpired = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ1c2VyMiIsImV4cGlyZWQiOjAsInJvbGUiOjEsImlhdCI6MTY1MTU1MzY3MH0.07KcHg_xYH1dRbFQHAyneawRopY49vpnauTRzvx9mQY";
 
 describe("Integration Test /login", () => {
-  afterEach(() => {
-    sinon.restore();
+  beforeAll(() => {
+    cache.redis.flushall();
   });
 
-  afterAll(() => {
-    models.sequelize.close()
+  afterEach(() => {
+    sinon.restore();
   });
 
   describe("POST /login/user", () => {
@@ -31,16 +37,22 @@ describe("Integration Test /login", () => {
 
     describe("error 404", () => {
       it("user not found", async () => {
+        let mockDbConn = sinon.mock(database);
+        mockDbConn.expects("getModel").once().resolves(mongodbConnection);
         let mock = sinon.mock(loginDao);
         mock.expects("authUser").once().resolves({});
         await agent.post("/login/user").expect(404);
+        mockDbConn.verify();
         mock.verify();
+        mockDbConn.restore();
         mock.restore();
       });
     });
 
     describe("200 ok", () => {
       it("should return 200 ok", async () => {
+        let mockDbConn = sinon.mock(database);
+        mockDbConn.expects("getModel").once().resolves(mongodbConnection);
         const obj = {
           username: "user2",
           password: "password"
@@ -51,7 +63,9 @@ describe("Integration Test /login", () => {
           refToken: "asldakfwkfla"
         });
         await agent.post("/login/user").send(obj).expect(200);
+        mockDbConn.verify();
         mock.verify();
+        mockDbConn.restore();
         mock.restore();
       });
     });

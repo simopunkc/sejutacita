@@ -88,7 +88,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"username\": \"user2\",\n    \"password\": \"password\"\n}",
+					"raw": "{\n    \"username\": \"user1\",\n    \"password\": \"password\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -136,13 +136,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{baseUrl}}/user/1",
+					"raw": "{{baseUrl}}/user/CJy6ZwPO8X0",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
 						"user",
-						"1"
+						"CJy6ZwPO8X0"
 					]
 				}
 			},
@@ -249,7 +249,7 @@
 			"response": []
 		},
 		{
-			"name": "admin: read user",
+			"name": "admin: read user admin",
 			"request": {
 				"method": "GET",
 				"header": [
@@ -265,13 +265,42 @@
 					}
 				],
 				"url": {
-					"raw": "{{baseUrl}}/admin/1",
+					"raw": "{{baseUrl}}/admin/CVeomEaSrNq",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
 						"admin",
-						"1"
+						"CVeomEaSrNq"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "admin: read normal user",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "access_token",
+						"value": "{{accToken}}",
+						"type": "text"
+					},
+					{
+						"key": "refresh_token",
+						"value": "{{refToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/admin/CJy6ZwPO8X0",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"CJy6ZwPO8X0"
 					]
 				}
 			},
@@ -295,7 +324,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"first_name\": \"user\",\n    \"last_name\": \"kedua\",\n    \"email\": \"updated@web.com\"\n}",
+					"raw": "{\n    \"first_name\": \"user\",\n    \"last_name\": \"pertama\",\n    \"email\": \"updated@web.com\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -303,13 +332,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{baseUrl}}/admin/1",
+					"raw": "{{baseUrl}}/admin/CJy6ZwPO8X0",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
 						"admin",
-						"1"
+						"CJy6ZwPO8X0"
 					]
 				}
 			},
@@ -332,13 +361,13 @@
 					}
 				],
 				"url": {
-					"raw": "{{baseUrl}}/admin/1",
+					"raw": "{{baseUrl}}/admin/CJy6ZwPO8X0",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
 						"admin",
-						"1"
+						"CJy6ZwPO8X0"
 					]
 				}
 			},

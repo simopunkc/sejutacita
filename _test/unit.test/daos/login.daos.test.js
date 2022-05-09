@@ -1,9 +1,18 @@
 const sinon = require("sinon");
 const loginDao = require('../../../daos/login.dao');
+const mongodbConnection = {
+  userLogin: {
+    findOne(){},
+  },
+}
 
 describe("POST auth user", () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+  
   it("Refresh token is not expired", async () => {
-    let mockDB = sinon.mock(loginDao.userLogin);
+    let mockDB = sinon.mock(mongodbConnection.userLogin);
     const obj = {
       username: "user2",
       password: "password"
@@ -13,14 +22,14 @@ describe("POST auth user", () => {
       username: obj.username,
       password: "$2b$08$ZYq27bAmS39JMKB1yauniOIl6TEq8QajPB83iC2V1ypvJQa8koXFa"
     });
-    const userLogin = await loginDao.authUser(obj);
+    const userLogin = await loginDao.authUser(mongodbConnection, obj);
     expect(userLogin).toHaveProperty('accToken');
     expect(userLogin).toHaveProperty('refToken');
     mockDB.verify();
     mockDB.restore();
-  })
+  });
   it("Should wrong password", async () => {
-    let mockDB = sinon.mock(loginDao.userLogin);
+    let mockDB = sinon.mock(mongodbConnection.userLogin);
     const obj = {
       username: "user2",
       password: "password"
@@ -30,22 +39,22 @@ describe("POST auth user", () => {
       username: obj.username,
       password: obj.password
     });
-    await loginDao.authUser(obj).catch((error) => {
+    await loginDao.authUser(mongodbConnection, obj).catch((error) => {
       expect(error.message).toEqual("wrong password");
     });
     mockDB.verify();
     mockDB.restore();
-  })
+  });
   it("Should catch error", async () => {
-    let mockDB = sinon.mock(loginDao.userLogin);
+    let mockDB = sinon.mock(mongodbConnection.userLogin);
     mockDB.expects("findOne").once().rejects(new Error("type"));
-    await loginDao.authUser({}).catch((error) => {
+    await loginDao.authUser(mongodbConnection, {}).catch((error) => {
       expect(error.message).toEqual("type");
     });
     mockDB.verify();
     mockDB.restore();
-  })
-})
+  });
+});
 
 describe("Update Access Token", () => {
   it("should update access token", async () => {
@@ -55,5 +64,5 @@ describe("Update Access Token", () => {
     }
     const userLogin = await loginDao.updateAccToken(obj)
     expect(userLogin).not.toEqual('expired');
-  })
-})
+  });
+});

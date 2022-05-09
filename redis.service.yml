@@ -1,0 +1,18 @@
+# sobotklp
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster
+  labels:
+    app: redis-cluster
+    environment: dev
+spec:
+  publishNotReadyAddresses: true
+  ports:
+  - port: 6379
+    targetPort: 6379
+    nodePort: 31112
+    name: client
+  type: NodePort
+  selector:
+    app: redis-cluster

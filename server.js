@@ -12,5 +12,4 @@ app.use('/admin', admin);
 app.use('/user', user);
 app.use('/login', login);
 app.use('/register', register);
-
 module.exports = app

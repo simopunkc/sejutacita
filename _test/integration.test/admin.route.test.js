@@ -2,10 +2,21 @@ const app = require('../../server');
 const request = require("supertest");
 const sinon = require("sinon");
 const agent = request.agent(app);
-const models = require('../../models/index')
 const token = require('../../modules/token.modules');
 const role = require('../../modules/role.modules');
+const redisConnection = require("../../models/redis.connection");
 const profileDao = require('../../daos/profile.dao');
+const database = require('../../models/mongodb.connection');
+const mongodbConnection = {
+  userLogin: {
+    findOneAndDelete(){},
+  },
+  userProfile: {
+    findOne(){},
+    findOneAndUpdate(){},
+    findOneAndDelete(){},
+  }
+}
 
 const validRefToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ1c2VyMiIsImV4cGlyZWQiOjMxNTM2MDAwMDAwLCJyb2xlIjoxLCJpYXQiOjE2NTE1NTM2NzB9.kXGDUopOZfW_Lvkqmg7j4Ww7G0MN6qYr9G7plXoyC6k";
 const validRefTokenButExpired = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ1c2VyMiIsImV4cGlyZWQiOjAsInJvbGUiOjEsImlhdCI6MTY1MTU1MzY3MH0.07KcHg_xYH1dRbFQHAyneawRopY49vpnauTRzvx9mQY";
@@ -15,12 +26,12 @@ const validAccTokenAdminButDifferentId = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e
 const validAccTokenButExpired = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ1c2VyMiIsImV4cGlyZWQiOjAsInJvbGUiOjIsImlhdCI6MTY1MTU1MzY3MH0.AfXr9nUo4GD-1ZANFjF86q1AF9YwXi5JdYaE_AI-Oec";
 
 describe("Integration Test /admin", () => {
-  afterEach(() => {
-    sinon.restore();
+  beforeAll(() => {
+    redisConnection.redis.flushall();
   });
 
-  afterAll(() => {
-    models.sequelize.close()
+  afterEach(() => {
+    sinon.restore();
   });
 
   describe("GET /admin/:id", () => {
@@ -61,7 +72,7 @@ describe("Integration Test /admin", () => {
         let mock2 = sinon.mock(profileDao);
         mock1.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock1.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
-        mock2.expects("getOneUser").once().throwsException(new Error("type"));
+        mock2.expects("getOneUser").withArgs(sinon.match.any).throwsException(new Error("type"));
         await agent.get("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(500);
         mock1.verify();
         mock2.verify();
@@ -72,14 +83,18 @@ describe("Integration Test /admin", () => {
 
     describe("error 404", () => {
       it("user not found", async () => {
+        let mockDbConn = sinon.mock(database);
+        mockDbConn.expects("getModel").once().resolves(mongodbConnection);
         let mock = sinon.mock(token);
-        let mockDB = sinon.mock(profileDao.userProfile);
-        mockDB.expects("findByPk").once().resolves({});
+        let mockDB = sinon.mock(mongodbConnection.userProfile);
+        mockDB.expects("findOne").once().resolves({});
         mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         await agent.get("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(404);
+        mockDbConn.verify();
         mock.verify();
         mockDB.verify();
+        mockDbConn.restore();
         mock.restore();
         mockDB.restore();
       });
@@ -128,19 +143,41 @@ describe("Integration Test /admin", () => {
     });
 
     describe("200 ok", () => {
-      it("should return 200 ok", async () => {
+      it("should get data from database", async () => {
+        let mockDbConn = sinon.mock(database);
+        mockDbConn.expects("getModel").once().resolves(mongodbConnection);
         let mock = sinon.mock(token);
-        let mockDB = sinon.mock(profileDao.userProfile);
-        mockDB.expects("findByPk").once().resolves({
+        let mockDB = sinon.mock(mongodbConnection.userProfile);
+        mockDB.expects("findOne").once().resolves({
           email: 'user2@web.com'
         });
         mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         await agent.get("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(200);
+        mockDbConn.verify();
         mock.verify();
         mockDB.verify();
+        mockDbConn.restore();
         mock.restore();
         mockDB.restore();
+      });
+      it("should get data from redis", async () => {
+        let mockDbConn = sinon.mock(database);
+        mockDbConn.expects("getModel").once().resolves(mongodbConnection);
+        let mock = sinon.mock(token);
+        let mockRedis = sinon.mock(redisConnection.redis);
+        mockRedis.expects("get").once().resolves(JSON.stringify({
+          email: 'user2@web.com'
+        }));
+        mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
+        mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
+        await agent.get("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(200);
+        mockDbConn.verify();
+        mock.verify();
+        mockRedis.verify();
+        mockDbConn.restore();
+        mock.restore();
+        mockRedis.restore();
       });
     });
   });
@@ -179,14 +216,18 @@ describe("Integration Test /admin", () => {
         mock2.restore();
       });
       it("should catch error dao", async () => {
+        let mockDbConn = sinon.mock(database);
+        mockDbConn.expects("getModel").once().resolves(mongodbConnection);
         let mock1 = sinon.mock(token);
         let mock2 = sinon.mock(profileDao);
         mock1.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock1.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         mock2.expects("updateOneUser").once().throwsException(new Error("type"));
         await agent.put("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(500);
+        mockDbConn.verify();
         mock1.verify();
         mock2.verify();
+        mockDbConn.restore();
         mock1.restore();
         mock2.restore();
       });
@@ -194,14 +235,18 @@ describe("Integration Test /admin", () => {
 
     describe("error 404", () => {
       it("user not found", async () => {
+        let mockDbConn = sinon.mock(database);
+        mockDbConn.expects("getModel").once().resolves(mongodbConnection);
         let mock = sinon.mock(token);
-        let mockDB = sinon.mock(profileDao.userProfile);
-        mockDB.expects("update").once().resolves(0);
+        let mockDB = sinon.mock(mongodbConnection.userProfile);
+        mockDB.expects("findOneAndUpdate").once().resolves(0);
         mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         await agent.put("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(404);
+        mockDbConn.verify();
         mock.verify();
         mockDB.verify();
+        mockDbConn.restore();
         mock.restore();
         mockDB.restore();
       });
@@ -243,6 +288,8 @@ describe("Integration Test /admin", () => {
 
     describe("200 ok", () => {
       it("should return 200 ok", async () => {
+        let mockDbConn = sinon.mock(database);
+        mockDbConn.expects("getModel").once().resolves(mongodbConnection);
         let mock = sinon.mock(token);
         let mockDB = sinon.mock(profileDao);
         const obj = {
@@ -254,8 +301,10 @@ describe("Integration Test /admin", () => {
         mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         await agent.put("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).send(obj).expect(200);
+        mockDbConn.verify();
         mock.verify();
         mockDB.verify();
+        mockDbConn.restore();
         mock.restore();
         mockDB.restore();
       });
@@ -296,14 +345,18 @@ describe("Integration Test /admin", () => {
         mock2.restore();
       });
       it("should catch error dao", async () => {
+        let mockDbConn = sinon.mock(database);
+        mockDbConn.expects("getModel").once().resolves(mongodbConnection);
         let mock1 = sinon.mock(token);
         let mock2 = sinon.mock(profileDao);
         mock1.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock1.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         mock2.expects("deleteOneUser").once().throwsException(new Error("type"));
         await agent.delete("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(500);
+        mockDbConn.verify();
         mock1.verify();
         mock2.verify();
+        mockDbConn.restore();
         mock1.restore();
         mock2.restore();
       });
@@ -311,16 +364,24 @@ describe("Integration Test /admin", () => {
 
     describe("error 404", () => {
       it("user not found", async () => {
+        let mockDbConn = sinon.mock(database);
+        mockDbConn.expects("getModel").once().resolves(mongodbConnection);
         let mock = sinon.mock(token);
-        let mockDB = sinon.mock(profileDao.userProfile);
-        mockDB.expects("destroy").once().resolves(0);
+        let mockDB1 = sinon.mock(mongodbConnection.userProfile);
+        let mockDB2 = sinon.mock(mongodbConnection.userLogin);
+        mockDB1.expects("findOneAndDelete").once().resolves(0);
+        mockDB2.expects("findOneAndDelete").once().resolves(0);
         mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         await agent.delete("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(404);
+        mockDbConn.verify();
         mock.verify();
-        mockDB.verify();
+        mockDB1.verify();
+        mockDB2.verify();
+        mockDbConn.restore();
         mock.restore();
-        mockDB.restore();
+        mockDB1.restore();
+        mockDB2.restore();
       });
     });
 
@@ -360,16 +421,24 @@ describe("Integration Test /admin", () => {
 
     describe("200 ok", () => {
       it("should return 200 ok", async () => {
+        let mockDbConn = sinon.mock(database);
+        mockDbConn.expects("getModel").once().resolves(mongodbConnection);
         let mock = sinon.mock(token);
-        let mockDB = sinon.mock(profileDao.userProfile);
-        mockDB.expects("destroy").once().resolves(1);
+        let mockDB1 = sinon.mock(mongodbConnection.userProfile);
+        let mockDB2 = sinon.mock(mongodbConnection.userLogin);
+        mockDB1.expects("findOneAndDelete").once().resolves(1);
+        mockDB2.expects("findOneAndDelete").once().resolves(1);
         mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         await agent.delete("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(200);
+        mockDbConn.verify();
         mock.verify();
-        mockDB.verify();
+        mockDB1.verify();
+        mockDB2.verify();
+        mockDbConn.restore();
         mock.restore();
-        mockDB.restore();
+        mockDB1.restore();
+        mockDB2.restore();
       });
     });
   });

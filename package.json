@@ -6,8 +6,8 @@
   "author": "simopunkc <pembela.allah@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "node index.js",
-    "start-dev": "nodemon index.js",
+    "start": "node index.js dotenv_config_path=./.env",
+    "dev": "nodemon index.js dotenv_config_path=./.env",
     "test": "jest --runInBand --detectOpenHandles --watchAll --coverage",
     "lint": "eslint ./"
   },
@@ -16,9 +16,10 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "express": "^4.18.1",
+    "ioredis": "^5.0.4",
     "jsonwebtoken": "^8.5.1",
-    "mariadb": "^3.0.0",
-    "pm2": "^5.2.0",
+    "mongoose": "^6.3.2",
+    "nanoid": "^3.3.4",
     "sequelize": "^6.19.0"
   },
   "devDependencies": {

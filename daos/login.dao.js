@@ -1,17 +1,12 @@
-const { userProfile, userLogin } = require('../models/index');
 const jwt = require('../modules/jwt.modules');
 const { generateExpiredAccToken, generateExpiredRefToken } = require("../modules/date.modules");
-const token = require('../modules/token.modules');
 const bcrypt = require('../modules/bcrypt.modules');
-const role = require('../modules/role.modules');
 
 module.exports = {
-  authUser: (obj) => {
+  authUser: (mongodbConnection, obj) => {
     return new Promise((resolve, reject) => {
-      userLogin.findOne({
-        where: {
-          username: obj.username
-        }
+      mongodbConnection.userLogin.findOne({
+        username: obj.username
       }).then(async (login) => {
         const validLogin = await bcrypt.compareHash(obj.password, login.password)
         if(validLogin){
@@ -52,9 +47,4 @@ module.exports = {
       })
     });
   },
-  userProfile,
-  userLogin,
-  token,
-  jwt,
-  role
 };

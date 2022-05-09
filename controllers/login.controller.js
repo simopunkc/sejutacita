@@ -1,13 +1,17 @@
 require('dotenv').config();
+const jwt = require('../modules/jwt.modules');
+const token = require('../modules/token.modules');
+const role = require('../modules/role.modules');
 const loginDao = require('../daos/login.dao');
+const database = require('../models/mongodb.connection');
 
 const { env } = process;
 
 const middlewareCheckRefToken = async (req, res, next) => {
   try {
     if(req.headers[env.COOKIE_REFRESH_TOKEN]){
-      const refToken = loginDao.jwt.decryptJWT(req.headers[env.COOKIE_REFRESH_TOKEN])
-      if(loginDao.token.isExpiredRefToken(refToken.expired)){
+      const refToken = jwt.decryptJWT(req.headers[env.COOKIE_REFRESH_TOKEN])
+      if(token.isExpiredRefToken(refToken.expired)){
         return res.status(400).json({
           status: false,
           message: 'refresh token expired',
@@ -33,8 +37,8 @@ const middlewareCheckRefToken = async (req, res, next) => {
 const middlewareCheckAccToken = async (req, res, next) => {
   try {
     if(req.headers[env.COOKIE_ACCESS_TOKEN]){
-      const accToken = loginDao.jwt.decryptJWT(req.headers[env.COOKIE_ACCESS_TOKEN])
-      if(loginDao.token.isExpiredAccToken(accToken.expired)){
+      const accToken = jwt.decryptJWT(req.headers[env.COOKIE_ACCESS_TOKEN])
+      if(token.isExpiredAccToken(accToken.expired)){
         return res.status(400).json({
           status: false,
           message: 'access token expired',
@@ -57,9 +61,9 @@ const middlewareCheckAccToken = async (req, res, next) => {
   }
 }
 
-const middlewareValidateToken = async (req, res, next) => {
+const middlewareValidateToken = async (_, res, next) => {
   try {
-    const validToken = loginDao.token.validateIdToken(res.locals.refToken,res.locals.accToken)
+    const validToken = token.validateIdToken(res.locals.refToken,res.locals.accToken)
     if(validToken){
       next()
     }else{
@@ -76,10 +80,10 @@ const middlewareValidateToken = async (req, res, next) => {
   }
 }
 
-const middlewareCheckRole = async (req, res, next) => {
+const middlewareCheckRole = async (_, res, next) => {
   try {
-    const role = loginDao.role.getRole(res.locals.accToken)
-    if(role!=1){
+    const validateRole = role.getRole(res.locals.accToken)
+    if(validateRole!=1){
       return res.status(403).json({
         status: false,
         message: 'invalid authorization',
@@ -97,7 +101,7 @@ const middlewareCheckRole = async (req, res, next) => {
 
 const middlewareCheckIdUser = async (req, res, next) => {
   try {
-    const idUser = loginDao.role.getIdUser(res.locals.accToken)
+    const idUser = role.getIdUser(res.locals.accToken)
     if(idUser!=req.params.id){
       return res.status(403).json({
         status: false,
@@ -116,7 +120,8 @@ const middlewareCheckIdUser = async (req, res, next) => {
 
 const authUser = async (req, res) => {
   try {
-    const userLogin = await loginDao.authUser(req.body)
+    const mongodbConnection = await database.getModel();
+    const userLogin = await loginDao.authUser(mongodbConnection, req.body)
     if(userLogin.accToken){
       return res.status(200).json({
         status: true,

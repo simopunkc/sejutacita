@@ -1,9 +1,12 @@
 const profileDao = require('../daos/profile.dao');
+const profileDaoRedis = require('../daos/profile.dao.redis');
+const database = require('../models/mongodb.connection');
 
 const readUser = async (req, res) => {
-  const { id } = req.params
+  const { id } = req.params;
   try {
-    const userProfile = await profileDao.getOneUser(id)
+    const mongodbConnection = await database.getModel();
+    const userProfile = await profileDaoRedis.getOneUser(mongodbConnection, id)
     if(userProfile.email){
       return res.status(200).json({
         status: true,
@@ -27,7 +30,8 @@ const readUser = async (req, res) => {
 const updateUser = async (req, res) => {
   const { id } = req.params
   try {
-    const num = await profileDao.updateOneUser(req.body, id)
+    const mongodbConnection = await database.getModel();
+    const num = await profileDao.updateOneUser(mongodbConnection, req.body, id)
     if(num === 0){
       return res.status(404).json({
         status: false,
@@ -50,7 +54,8 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   const { id } = req.params
   try {
-    const num = await profileDao.deleteOneUser(id)
+    const mongodbConnection = await database.getModel();
+    const num = await profileDao.deleteOneUser(mongodbConnection, id)
     if(num === 0){
       return res.status(404).json({
         status: false,

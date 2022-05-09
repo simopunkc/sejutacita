@@ -24,23 +24,7 @@ const sequelize = new Sequelize(env.DB_NAME, env.DB_USER, env.DB_PASSWORD, {
   // }
 });
 
-const userLogin = require('./login.model')(sequelize, Sequelize);
-const userProfile = require('./profile.model')(sequelize, Sequelize);
-
-userProfile.hasOne(userLogin, {
-  as: 'user_logins',
-  foreignKey: 'id_user_profiles'
-})
-userLogin.belongsTo(userProfile, {
-  as: 'user_profiles',
-  foreignKey: 'id_user_profiles',
-  onDelete: 'cascade',
-  hooks: true
-})
-
 module.exports = {
-  Sequelize,
   sequelize,
-  userLogin,
-  userProfile,
+  Sequelize,
 };

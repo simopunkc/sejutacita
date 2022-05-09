@@ -1,10 +1,8 @@
-const { userProfile, userLogin } = require('../models/index');
-
 module.exports = {
-  getOneUser: (id) => {
+  getOneUser: (mongodbConnection, idUser) => {
     return new Promise((resolve, reject) => {
-      userProfile.findByPk(id,{
-        include: 'user_logins'
+      mongodbConnection.userProfile.findOne({
+        id: idUser
       }).then(user => {
         resolve(user);
       }).catch(err => {
@@ -12,14 +10,14 @@ module.exports = {
       });
     });
   },
-  updateOneUser: (obj, id) => {
+  updateOneUser: (mongodbConnection, obj, idUser) => {
     return new Promise((resolve, reject) => {
-      userProfile.update({
+      mongodbConnection.userProfile.findOneAndUpdate({
+        id: idUser
+      }, {
         firstName: obj.first_name,
         lastName: obj.last_name,
         email: obj.email,
-      }, {
-        where: {id: id}
       }).then(user => {
         resolve(user);
       }).catch(err => {
@@ -27,17 +25,19 @@ module.exports = {
       });
     });
   },
-  deleteOneUser: (id) => {
+  deleteOneUser: (mongodbConnection, idUser) => {
     return new Promise((resolve, reject) => {
-      userProfile.destroy({
-        where: {id: id}
-      }).then(user => {
-        resolve(user);
+      mongodbConnection.userProfile.findOneAndDelete({
+        id: idUser
+      }).then(() => {
+        return mongodbConnection.userLogin.findOneAndDelete({
+          id_user_profiles: idUser
+        });
+      }).then((login) => {
+        resolve(login);
       }).catch(err => {
         reject(err);
       });
     });
   },
-  userProfile,
-  userLogin
 };

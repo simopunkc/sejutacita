@@ -28,6 +28,9 @@ MariaDB
 # open "sejutacita" folder
 cd sejutacita/
 
+# create .env file
+cp .env.local .env
+
 # install library
 yarn install
 ```

@@ -1,21 +1,21 @@
-module.exports = (sequelize, Sequelize) => {
-  const userProfile = sequelize.define('user_profiles', {
+module.exports = (database) => {
+  const userProfile = database.sequelize.define('user_profiles', {
     id: {
-      type: Sequelize.INTEGER,
+      type: database.Sequelize.INTEGER,
       allowNull: false,
       primaryKey: true,
       autoIncrement: true,
     },
     firstName: {
-      type: Sequelize.STRING,
+      type: database.Sequelize.STRING,
       allowNull: false,
     },
     lastName: {
-      type: Sequelize.STRING,
+      type: database.Sequelize.STRING,
       allowNull: false,
     },
     email: {
-      type: Sequelize.STRING,
+      type: database.Sequelize.STRING,
       allowNull: false,
       unique: true,
     },

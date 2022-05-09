@@ -1,16 +1,17 @@
-const { userProfile, userLogin } = require('../models/index');
 const { passwordHash } = require('../modules/bcrypt.modules');
+const { generateUniqueID } = require('../modules/nanoid.modules');
 
 module.exports = {
-  insertOneUser: (obj) => {
+  insertOneUser: (mongodbConnection, obj) => {
     return new Promise((resolve, reject) => {
-      userProfile.create({
+      mongodbConnection.userProfile.create({
+        id: generateUniqueID("U"),
         firstName: obj.first_name,
         lastName: obj.last_name,
         email: obj.email,
       }).then(async (user) => {
-        const hash = await passwordHash(obj.password)
-        userLogin.create({
+        const hash = await passwordHash(obj.password);
+        mongodbConnection.userLogin.create({
           username: obj.username,
           password: hash,
           id_user_profiles: user.id
@@ -21,6 +22,4 @@ module.exports = {
       });
     });
   },
-  userProfile,
-  userLogin
 };
