@@ -4,9 +4,18 @@ const sinon = require("sinon");
 const agent = request.agent(app);
 const token = require('../../modules/token.modules');
 const role = require('../../modules/role.modules');
-const redisConnection = require("../../models/redis.connection");
 const profileDao = require('../../daos/profile.dao');
+const profileDaoRedis = require('../../daos/profile.dao.redis');
 const database = require('../../models/mongodb.connection');
+const databaseCache = require("../../models/redis.connection");
+const redisConnection = {
+  redis: {
+    get(){},
+    exists(){},
+    set(){},
+    del(){},
+  }
+}
 const mongodbConnection = {
   userLogin: {
     findOneAndDelete(){},
@@ -26,10 +35,6 @@ const validAccTokenAdminButDifferentId = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e
 const validAccTokenButExpired = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ1c2VyMiIsImV4cGlyZWQiOjAsInJvbGUiOjIsImlhdCI6MTY1MTU1MzY3MH0.AfXr9nUo4GD-1ZANFjF86q1AF9YwXi5JdYaE_AI-Oec";
 
 describe("Integration Test /admin", () => {
-  beforeAll(() => {
-    redisConnection.redis.flushall();
-  });
-
   afterEach(() => {
     sinon.restore();
   });
@@ -69,7 +74,7 @@ describe("Integration Test /admin", () => {
       });
       it("should catch error dao", async () => {
         let mock1 = sinon.mock(token);
-        let mock2 = sinon.mock(profileDao);
+        let mock2 = sinon.mock(profileDaoRedis);
         mock1.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock1.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         mock2.expects("getOneUser").withArgs(sinon.match.any).throwsException(new Error("type"));
@@ -86,8 +91,8 @@ describe("Integration Test /admin", () => {
         let mockDbConn = sinon.mock(database);
         mockDbConn.expects("getModel").once().resolves(mongodbConnection);
         let mock = sinon.mock(token);
-        let mockDB = sinon.mock(mongodbConnection.userProfile);
-        mockDB.expects("findOne").once().resolves({});
+        let mockDB = sinon.mock(profileDaoRedis);
+        mockDB.expects("getOneUser").once().resolves({});
         mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         await agent.get("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(404);
@@ -146,6 +151,10 @@ describe("Integration Test /admin", () => {
       it("should get data from database", async () => {
         let mockDbConn = sinon.mock(database);
         mockDbConn.expects("getModel").once().resolves(mongodbConnection);
+        let mockRedisConn = sinon.mock(databaseCache);
+        mockRedisConn.expects("getModel").once().resolves(redisConnection);
+        let mockRedis = sinon.mock(redisConnection.redis);
+        mockRedis.expects("exists").once().returns(0);
         let mock = sinon.mock(token);
         let mockDB = sinon.mock(mongodbConnection.userProfile);
         mockDB.expects("findOne").once().resolves({
@@ -155,15 +164,23 @@ describe("Integration Test /admin", () => {
         mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         await agent.get("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(200);
         mockDbConn.verify();
+        mockRedisConn.verify();
+        mockRedis.verify();
         mock.verify();
         mockDB.verify();
         mockDbConn.restore();
+        mockRedisConn.restore();
+        mockRedis.restore();
         mock.restore();
         mockDB.restore();
       });
       it("should get data from redis", async () => {
         let mockDbConn = sinon.mock(database);
         mockDbConn.expects("getModel").once().resolves(mongodbConnection);
+        let mockRedisConn = sinon.mock(databaseCache);
+        mockRedisConn.expects("getModel").once().resolves(redisConnection);
+        let mockExistsRedis = sinon.mock(redisConnection.redis);
+        mockExistsRedis.expects("exists").once().returns(1);
         let mock = sinon.mock(token);
         let mockRedis = sinon.mock(redisConnection.redis);
         mockRedis.expects("get").once().resolves(JSON.stringify({
@@ -173,9 +190,13 @@ describe("Integration Test /admin", () => {
         mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         await agent.get("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(200);
         mockDbConn.verify();
+        mockRedisConn.verify();
+        mockExistsRedis.verify();
         mock.verify();
         mockRedis.verify();
         mockDbConn.restore();
+        mockRedisConn.restore();
+        mockExistsRedis.restore();
         mock.restore();
         mockRedis.restore();
       });
@@ -300,13 +321,21 @@ describe("Integration Test /admin", () => {
         mockDB.expects("updateOneUser").once().resolves(1);
         mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
+        let mockRedisConn = sinon.mock(databaseCache);
+        mockRedisConn.expects("getModel").once().resolves(redisConnection);
+        let mockRedis = sinon.mock(redisConnection.redis);
+        mockRedis.expects("del").once().returns(1);
         await agent.put("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).send(obj).expect(200);
         mockDbConn.verify();
         mock.verify();
         mockDB.verify();
+        mockRedisConn.verify();
+        mockRedis.verify();
         mockDbConn.restore();
         mock.restore();
         mockDB.restore();
+        mockRedisConn.restore();
+        mockRedis.restore();
       });
     });
   });
@@ -430,16 +459,24 @@ describe("Integration Test /admin", () => {
         mockDB2.expects("findOneAndDelete").once().resolves(1);
         mock.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
+        let mockRedisConn = sinon.mock(databaseCache);
+        mockRedisConn.expects("getModel").once().resolves(redisConnection);
+        let mockRedis = sinon.mock(redisConnection.redis);
+        mockRedis.expects("del").once().returns(1);
         await agent.delete("/admin/1").set("refresh_token", validRefToken).set("access_token", validAccTokenAdmin).expect(200);
         mockDbConn.verify();
         mock.verify();
         mockDB1.verify();
         mockDB2.verify();
+        mockRedisConn.verify();
+        mockRedis.verify();
         mockDbConn.restore();
         mock.restore();
         mockDB1.restore();
         mockDB2.restore();
+        mockRedisConn.restore();
+        mockRedis.restore();
       });
     });
   });
-})
+});

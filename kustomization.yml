@@ -1,13 +1,11 @@
 resources:
-# - redis.service.yml
-# - redis.pdb.yml
-# - redis.configmap.yml
-# - redis.statefulset.yml
+- redis.service.yml
+- redis.pdb.yml
+- redis.configmap.yml
+- redis.statefulset.yml
 - mongodb.rbac.yml
 - mongodb.statefulset.yml
 - mongodb.service.yml
-# - database.deployment.yml
-# - database.service.yml
-# - application.deployment.yml
-# - application.hpa.yml
-# - application.service.yml
+- application.deployment.yml
+- application.hpa.yml
+- application.service.yml

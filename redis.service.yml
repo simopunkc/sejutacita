@@ -13,6 +13,6 @@ spec:
     targetPort: 6379
     nodePort: 31112
     name: client
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: redis-cluster

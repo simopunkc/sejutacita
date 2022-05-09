@@ -1,7 +1,6 @@
 const profileDao = require("./profile.dao");
-const redisConnection = require("../models/redis.connection");
 
-async function redisRead(key, tableDB, mongodbConnection, idDB) {
+async function redisRead(key, tableDB, mongodbConnection, redisConnection, idDB) {
   let rawData;
   let checkCache = await redisConnection.redis.exists(key);
   if (checkCache) {
@@ -24,11 +23,17 @@ async function redisRead(key, tableDB, mongodbConnection, idDB) {
   return rawData;
 }
 
-async function getOneUser(mongodbConnection, idDB) {
+async function getOneUser(mongodbConnection, redisConnection, idDB) {
   let key = `gou_${idDB}`;
-  return await redisRead(key, "getOneUser", mongodbConnection, idDB);
+  return await redisRead(key, "getOneUser", mongodbConnection, redisConnection, idDB);
+}
+
+async function deleteOneUser(redisConnection, idDB) {
+  let key = `gou_${idDB}`;
+  await redisConnection.redis.del(key);
 }
 
 module.exports = {
   getOneUser,
+  deleteOneUser,
 };

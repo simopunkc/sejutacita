@@ -3,6 +3,7 @@
 kubectl apply -k ./
 sleep 5
 kubectl wait --for=condition=ready pod -l app=mongo
+sleep 5
 kubectl exec -it mongodb-replica-0 -n default -- mongosh <<EOF
 rs.initiate();
 var cfg = rs.conf();

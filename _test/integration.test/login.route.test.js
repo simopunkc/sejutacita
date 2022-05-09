@@ -3,7 +3,6 @@ const request = require("supertest");
 const sinon = require("sinon");
 const agent = request.agent(app);
 const token = require('../../modules/token.modules');
-const cache = require("../../models/redis.connection");
 const loginDao = require('../../daos/login.dao');
 const database = require('../../models/mongodb.connection');
 const mongodbConnection = {
@@ -16,10 +15,6 @@ const validRefToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5h
 const validRefTokenButExpired = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ1c2VyMiIsImV4cGlyZWQiOjAsInJvbGUiOjEsImlhdCI6MTY1MTU1MzY3MH0.07KcHg_xYH1dRbFQHAyneawRopY49vpnauTRzvx9mQY";
 
 describe("Integration Test /login", () => {
-  beforeAll(() => {
-    cache.redis.flushall();
-  });
-
   afterEach(() => {
     sinon.restore();
   });

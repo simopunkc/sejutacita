@@ -2,7 +2,6 @@ const app = require('../../server');
 const request = require("supertest");
 const sinon = require("sinon");
 const agent = request.agent(app);
-const cache = require("../../models/redis.connection");
 const registerDao = require('../../daos/register.dao');
 const database = require('../../models/mongodb.connection');
 const mongodbConnection = {
@@ -15,10 +14,6 @@ const mongodbConnection = {
 }
 
 describe("Integration Test /register", () => {
-  beforeAll(() => {
-    cache.redis.flushall();
-  });
-
   afterEach(() => {
     sinon.restore();
   });

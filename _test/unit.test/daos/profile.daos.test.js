@@ -1,7 +1,13 @@
 const sinon = require("sinon");
-const redisConnection = require("../../../models/redis.connection");
 const profileDao = require('../../../daos/profile.dao');
 const profileDaoRedis = require('../../../daos/profile.dao.redis');
+const redisConnection = {
+  redis: {
+    get(){},
+    exists(){},
+    set(){},
+  }
+}
 const mongodbConnection = {
   userLogin: {
     findOneAndDelete(){},
@@ -14,38 +20,39 @@ const mongodbConnection = {
 }
 
 describe("GET user profile", () => {
-  beforeAll(async () => {
-    await redisConnection.redis.flushall();
-  });
-
   afterEach(() => {
     sinon.restore();
   });
   
   it("Should get email from database", async () => {
+    let mockRedis = sinon.mock(redisConnection.redis);
+    mockRedis.expects("exists").once().returns(0);
     let mockDB = sinon.mock(mongodbConnection.userProfile);
     mockDB.expects("findOne").once().resolves({
       email: 'user2@web.com'
     });
-    const userProfile = await profileDaoRedis.getOneUser(mongodbConnection, 1);
+    const userProfile = await profileDaoRedis.getOneUser(mongodbConnection, redisConnection, 1);
     expect(userProfile.email).toEqual('user2@web.com');
+    mockRedis.verify();
     mockDB.verify();
+    mockRedis.restore();
     mockDB.restore();
   });
   it("Should get email from redis", async () => {
-    let mockDB = sinon.mock(redisConnection.redis);
-    mockDB.expects("get").once().resolves(JSON.stringify({
+    let mockRedis = sinon.mock(redisConnection.redis);
+    mockRedis.expects("exists").once().returns(1);
+    mockRedis.expects("get").once().resolves(JSON.stringify({
       email: 'user2@web.com'
     }));
-    const userProfile = await profileDaoRedis.getOneUser(mongodbConnection, 1);
+    const userProfile = await profileDaoRedis.getOneUser(mongodbConnection, redisConnection, 1);
     expect(userProfile.email).toEqual('user2@web.com');
-    mockDB.verify();
-    mockDB.restore();
+    mockRedis.verify();
+    mockRedis.restore();
   });
   it("Should catch error", async () => {
     let mockDB = sinon.mock(mongodbConnection.userProfile);
     mockDB.expects("findOne").once().rejects(new Error("type"));
-    await profileDaoRedis.getOneUser(mongodbConnection, "").catch((error) => {
+    await profileDaoRedis.getOneUser(mongodbConnection, redisConnection, "").catch((error) => {
       expect(error.message).toEqual("type");
     });
     mockDB.verify();

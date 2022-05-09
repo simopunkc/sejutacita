@@ -17,7 +17,10 @@ Minikube
 Node.js
 
 # run SQL database on your local machine
-MariaDB
+MongoDB
+
+# run Redis on your local machine
+Redis
 ```
 
 ## Installation
@@ -53,7 +56,8 @@ build docker image.
 
 ```bash
 docker build -t sejutacita -f application.Dockerfile .
-docker build -t sejutacita-db -f database.Dockerfile .
+docker build -t sejutacita-mongodb -f mongodb.Dockerfile .
+docker build -t sejutacita-redis -f redis.Dockerfile .
 ```
 
 ## Rebuild Image
@@ -67,15 +71,13 @@ docker image ls
 Run the following command if you have previously run the application and want to update the docker image.
 
 ```bash
-kubectl delete deploy sejutacita-deployment
-kubectl delete deploy sejutacita-db-deployment
-kubectl delete hpa sejutacita-deployment
-kubectl delete service sejutacita-service
-kubectl delete service sejutacita-db-service
+./stop-server.sh
 docker build --rm -t sejutacita -f application.Dockerfile .
-docker build --rm -t sejutacita-db -f database.Dockerfile .
+docker build --rm -t sejutacita-mongodb -f mongodb.Dockerfile .
+docker build --rm -t sejutacita-redis -f redis.Dockerfile .
 docker rmi <PREVIOUS_IMAGE_ID_sejutacita>
-docker rmi <PREVIOUS_IMAGE_ID_sejutacita-db>
+docker rmi <PREVIOUS_IMAGE_ID_sejutacita-mongodb>
+docker rmi <PREVIOUS_IMAGE_ID_sejutacita-redis>
 ```
 
 ## Deploy
@@ -83,36 +85,22 @@ docker rmi <PREVIOUS_IMAGE_ID_sejutacita-db>
 Pods
 
 ```bash
-kubectl apply -f application.deployment.yml
-kubectl apply -f database.deployment.yml
+./start-server.sh
 ```
 
-Check Pod Status
+Check Pod status
 
 ```bash
 kubectl get pods
 ```
 
-Horizontal Pod Autoscaler
-
-```bash
-kubectl apply -f application.hpa.yml
-```
-
-Check HPA Status
+Check Horizontal Pod Autoscaler status
 
 ```bash
 kubectl get hpa
 ```
 
-Services
-
-```bash
-kubectl apply -f application.service.yml
-kubectl apply -f database.service.yml
-```
-
-Check Service Status
+Check Service status
 
 ```bash
 kubectl get svc
@@ -120,7 +108,8 @@ kubectl get svc
 
 ## Debugging
 
-If you are running application on local machine maybe if necessary you need to create database with name ***sejutacita***. You also need to create a database user with the name ***username*** and password ***password***.
+- Make sure the .env file is created.
+- If you are running application on local machine maybe if necessary you need to create database with name ***sejutacita***.
 
 ## Test
 
@@ -134,12 +123,6 @@ Check the service URL for the app. After that access the URL in the browser to e
 
 ```bash
 minikube service --url sejutacita-service
-```
-
-Check the service URL for database
-
-```bash
-minikube service --url sejutacita-db-service
 ```
 
 You can import the collections and environment files in the *_test/postman.test* directory into Postman. Update **baseUrl** variable in environment in Postman with URL *sejutacita-service*.

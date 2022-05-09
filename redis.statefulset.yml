@@ -18,7 +18,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: redis-cluster
-        image: redis:latest
+        image: sejutacita-redis
         imagePullPolicy: Never
         ports:
         - containerPort: 6379

@@ -4,9 +4,16 @@ const sinon = require("sinon");
 const agent = request.agent(app);
 const token = require('../../modules/token.modules');
 const role = require('../../modules/role.modules');
-const cache = require("../../models/redis.connection");
-const profileDao = require('../../daos/profile.dao');
+const profileDaoRedis = require('../../daos/profile.dao.redis');
 const database = require('../../models/mongodb.connection');
+const databaseCache = require("../../models/redis.connection");
+const redisConnection = {
+  redis: {
+    get(){},
+    exists(){},
+    set(){},
+  }
+}
 const mongodbConnection = {
   userLogin: {
     findOne(){},
@@ -24,10 +31,6 @@ const validAccTokenUserButDifferentId = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ey
 const validAccTokenButExpired = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJ1c2VyMiIsImV4cGlyZWQiOjAsInJvbGUiOjIsImlhdCI6MTY1MTU1MzY3MH0.AfXr9nUo4GD-1ZANFjF86q1AF9YwXi5JdYaE_AI-Oec";
 
 describe("Integration Test /login", () => {
-  beforeAll(() => {
-    cache.redis.flushall();
-  });
-
   afterEach(() => {
     sinon.restore();
   });
@@ -67,7 +70,7 @@ describe("Integration Test /login", () => {
       });
       it("should catch error dao", async () => {
         let mock1 = sinon.mock(token);
-        let mock2 = sinon.mock(profileDao);
+        let mock2 = sinon.mock(profileDaoRedis);
         mock1.expects("isExpiredRefToken").withArgs(sinon.match.any).returns(false);
         mock1.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         mock2.expects("getOneUser").once().throwsException(new Error("type"));
@@ -83,6 +86,10 @@ describe("Integration Test /login", () => {
       it("user not found", async () => {
         let mockDbConn = sinon.mock(database);
         mockDbConn.expects("getModel").once().resolves(mongodbConnection);
+        let mockRedisConn = sinon.mock(databaseCache);
+        mockRedisConn.expects("getModel").once().resolves(redisConnection);
+        let mockRedis = sinon.mock(redisConnection.redis);
+        mockRedis.expects("exists").once().returns(0);
         let mock = sinon.mock(token);
         let mockDB = sinon.mock(mongodbConnection.userProfile);
         mockDB.expects("findOne").once().resolves({});
@@ -90,9 +97,13 @@ describe("Integration Test /login", () => {
         mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         await agent.get("/user/1").set("refresh_token", validRefToken).set("access_token", validAccTokenUser).expect(404);
         mockDbConn.verify();
+        mockRedisConn.verify();
+        mockRedis.verify();
         mock.verify();
         mockDB.verify();
         mockDbConn.restore();
+        mockRedisConn.restore();
+        mockRedis.restore();
         mock.restore();
         mockDB.restore();
       });
@@ -144,6 +155,10 @@ describe("Integration Test /login", () => {
       it("should return 200 ok", async () => {
         let mockDbConn = sinon.mock(database);
         mockDbConn.expects("getModel").once().resolves(mongodbConnection);
+        let mockRedisConn = sinon.mock(databaseCache);
+        mockRedisConn.expects("getModel").once().resolves(redisConnection);
+        let mockRedis = sinon.mock(redisConnection.redis);
+        mockRedis.expects("exists").once().returns(0);
         let mock = sinon.mock(token);
         let mockDB = sinon.mock(mongodbConnection.userProfile);
         mockDB.expects("findOne").once().resolves({
@@ -153,9 +168,13 @@ describe("Integration Test /login", () => {
         mock.expects("isExpiredAccToken").withArgs(sinon.match.any).returns(false);
         await agent.get("/user/1").set("refresh_token", validRefToken).set("access_token", validAccTokenUser).expect(200);
         mockDbConn.verify();
+        mockRedisConn.verify();
+        mockRedis.verify();
         mock.verify();
         mockDB.verify();
         mockDbConn.restore();
+        mockRedisConn.restore();
+        mockRedis.restore();
         mock.restore();
         mockDB.restore();
       });

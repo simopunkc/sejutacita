@@ -1,9 +1,21 @@
-require('dotenv').config();
-var Redis = require("ioredis");
-const { env } = process;
-var redis = new Redis({
-  host: env.REDIS_HOST,
-  port: env.REDIS_PORT,
-});
+const dbConnection = require('./redis.database');
 
-module.exports = { redis };
+const getModel = async () => {
+  try {
+    let redis = await dbConnection.getRedis();
+    if(redis == null){
+      redis = await dbConnection.connectRedis();
+    }
+    return {
+      redis,
+    }
+  } catch (err) {
+    return {
+      redis: {},
+    }
+  }
+};
+
+module.exports = {
+  getModel
+};
