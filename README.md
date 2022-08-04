@@ -52,6 +52,12 @@ change Docker environment to Minikube.
 eval $(minikube docker-env)
 ```
 
+if you want to go back to the Docker environment:
+
+```bash
+eval "$(docker-machine env -u)"
+```
+
 build docker image.
 
 ```bash
@@ -109,7 +115,7 @@ kubectl get svc
 ## Debugging
 
 - Make sure the .env file is created.
-- If you are running application on local machine maybe if necessary you need to create database with name ***sejutacita***.
+- If you are running application on local machine maybe if necessary you need to create database with name **_sejutacita_**.
 
 ## Test
 
@@ -125,7 +131,7 @@ Check the service URL for the app. After that access the URL in the browser to e
 minikube service --url sejutacita-service
 ```
 
-You can import the collections and environment files in the *_test/postman.test* directory into Postman. Update **baseUrl** variable in environment in Postman with URL *sejutacita-service*.
+You can import the collections and environment files in the _\_test/postman.test_ directory into Postman. Update **baseUrl** variable in environment in Postman with URL _sejutacita-service_.
 
 ## Flow
 
@@ -134,6 +140,7 @@ You can import the collections and environment files in the *_test/postman.test*
 ```bash
 POST /register/user
 ```
+
 This endpoint is used by the user for account registration. an **admin** has a role that is **1**. by default the role obtained on account registration is **2** which means the user is not an **admin**.
 
 ### User login
@@ -141,6 +148,7 @@ This endpoint is used by the user for account registration. an **admin** has a r
 ```bash
 POST /login/user
 ```
+
 This endpoint is used by the user for account login. If the **username** and **password** entered in the request body are valid, the user will get an access token and a refresh token. Access tokens have a short life span. Whereas refresh tokens have a long lifetime. Both tokens are used as cookie values ​​which are stored in the user's browser.
 
 ### Resource access
